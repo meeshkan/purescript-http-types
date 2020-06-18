@@ -92,8 +92,6 @@ instance writeForeignHeader :: WriteForeign Header where
   writeImpl (ArrayHeader a) = writeImpl a
 
 
-data JSON = JObject (HttpTypesMap JSON) | JArray (Array JSON) | JString String | JBoolean Boolean | JNumber Number | JNull
-
 newtype Request = Request {
   method :: Method,
   protocol :: Maybe Protocol,
@@ -135,6 +133,8 @@ httpTypesMapToObject (HttpTypesMap f) = FO.fromFoldable ((Map.toUnfoldable f) ::
 
 instance writeForeignHttpTypesMap :: (WriteForeign a) => WriteForeign (HttpTypesMap a) where
   writeImpl f = writeImpl (httpTypesMapToObject f)
+
+data JSON = JObject (HttpTypesMap JSON) | JArray (Array JSON) | JString String | JBoolean Boolean | JNumber Number | JNull
 
 instance readForeignJSON :: ReadForeign JSON where
   readImpl f = if (isNull f) then pure JNull else (readNumber f >>= pure <<< JNumber) <|> (readBoolean f >>= pure <<< JBoolean) <|> (readString f >>= pure <<< JString) <|> (readArray f >>= sequence <<< map readImpl >>= pure <<< JArray) <|> (readImpl f >>= pure <<< JObject)
