@@ -2,7 +2,7 @@
 Welcome to a Spago project!
 You can edit this file as you like.
 -}
-{ name = "http-types"
+{ name = "http-types-basic"
 , license  = "Apache-2.0"
 , repository = "https://github.com/meeshkan/purescript-http-types"
 , dependencies =
