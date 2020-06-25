@@ -1,17 +1,16 @@
-module Data.HttpTypes.V000 (
-  Request(..),
-  Response(..),
-  Exchange(..),
-  HttpTypesMap,
-  Method(..),
-  Protocol(..),
-  Query,
-  Header,
-  JSON(..)
-) where
+module Data.HttpTypes.V000
+  ( Request(..)
+  , Response(..)
+  , Exchange(..)
+  , HttpTypesMap(..)
+  , Method(..)
+  , Protocol(..)
+  , Query(..)
+  , Header(..)
+  , JSON(..)
+  ) where
 
 import Prelude
-
 import Control.Alt ((<|>))
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -24,12 +23,26 @@ import Foreign (ForeignError(..), fail, isNull, readArray, readBoolean, readNumb
 import Foreign.Object as FO
 import Simple.JSON (class ReadForeign, readImpl, class WriteForeign, writeImpl)
 
-newtype HttpTypesMap b = HttpTypesMap (Map.Map String b)
+newtype HttpTypesMap b
+  = HttpTypesMap (Map.Map String b)
+
 derive newtype instance eqHttpTypesMap :: (Eq a) => Eq (HttpTypesMap a)
 
-data Method = GET | POST | PUT | DELETE | PATCH | HEAD | TRACE | OPTIONS | CONNECT
+data Method
+  = GET
+  | POST
+  | PUT
+  | DELETE
+  | PATCH
+  | HEAD
+  | TRACE
+  | OPTIONS
+  | CONNECT
+
 derive instance eqMethod :: Eq Method
+
 derive instance genericMethod :: Generic Method _
+
 instance showMethod :: Show Method where
   show = genericShow
 
@@ -59,10 +72,15 @@ instance writeForeignMethod :: WriteForeign Method where
   writeImpl OPTIONS = writeImpl "options"
   writeImpl CONNECT = writeImpl "connect"
 
-data Protocol = HTTP | HTTPS
+data Protocol
+  = HTTP
+  | HTTPS
+
 derive instance genericProtocol :: Generic Protocol _
+
 instance showProtocol :: Show Protocol where
   show = genericShow
+
 derive instance eqProtocol :: Eq Protocol
 
 instance readForeignProtocol :: ReadForeign Protocol where
@@ -77,56 +95,67 @@ instance writeForeignPrtocol :: WriteForeign Protocol where
   writeImpl HTTP = writeImpl "http"
   writeImpl HTTPS = writeImpl "https"
 
-data Query = StringQuery String | ArrayQuery (Array String)
+data Query
+  = StringQuery String
+  | ArrayQuery (Array String)
+
 instance readForeignQuery :: ReadForeign Query where
   readImpl a = (readString a >>= pure <<< StringQuery) <|> (readArray a >>= sequence <<< map readImpl >>= pure <<< ArrayQuery)
+
 instance writeForeignQuery :: WriteForeign Query where
   writeImpl (StringQuery s) = writeImpl s
   writeImpl (ArrayQuery a) = writeImpl a
 
-data Header = StringHeader String | ArrayHeader (Array String)
+data Header
+  = StringHeader String
+  | ArrayHeader (Array String)
+
 instance readForeignHeader :: ReadForeign Header where
   readImpl a = (readString a >>= pure <<< StringHeader) <|> (readArray a >>= sequence <<< map readImpl >>= pure <<< ArrayHeader)
+
 instance writeForeignHeader :: WriteForeign Header where
   writeImpl (StringHeader s) = writeImpl s
   writeImpl (ArrayHeader a) = writeImpl a
 
+newtype Request
+  = Request
+  { method :: Method
+  , protocol :: Maybe Protocol
+  , host :: Maybe String
+  , url :: Maybe String
+  , path :: Maybe String
+  , pathname :: Maybe String
+  , query :: Maybe (HttpTypesMap Query)
+  , headers :: Maybe (HttpTypesMap Header)
+  , body :: Maybe String
+  , timestamp :: Maybe String
+  }
 
-newtype Request = Request {
-  method :: Method,
-  protocol :: Maybe Protocol,
-  host :: Maybe String,
-  url :: Maybe String,
-  path :: Maybe String,
-  pathname :: Maybe String,
-  query :: Maybe (HttpTypesMap Query),
-  headers :: Maybe (HttpTypesMap Header),
-  body :: Maybe String,
-  timestamp :: Maybe String
-}
 derive newtype instance readForeignRequest :: ReadForeign Request
 
-newtype Response = Response {
-  statusCode :: Int,
-  body :: Maybe String,
-  headers :: Maybe (HttpTypesMap Header),
-  timestamp :: Maybe String
-}
+newtype Response
+  = Response
+  { statusCode :: Int
+  , body :: Maybe String
+  , headers :: Maybe (HttpTypesMap Header)
+  , timestamp :: Maybe String
+  }
+
 derive newtype instance readForeignResponse :: ReadForeign Response
 
-newtype Exchange = Exchange {
-  meta :: Maybe JSON,
-  request :: Request,
-  response :: Response
-}
-derive newtype instance readForeignExchange :: ReadForeign Exchange
+newtype Exchange
+  = Exchange
+  { meta :: Maybe JSON
+  , request :: Request
+  , response :: Response
+  }
 
+derive newtype instance readForeignExchange :: ReadForeign Exchange
 
 instance readForeignHttpTypesMap :: (ReadForeign a) => ReadForeign (HttpTypesMap a) where
   readImpl f = do
     v <- (readImpl f)
     pure (HttpTypesMap $ Map.fromFoldable ((FO.toUnfoldable $ v) :: (Array (Tuple String a))))
-
 
 httpTypesMapToObject :: forall a. (WriteForeign a) => HttpTypesMap a -> FO.Object a
 httpTypesMapToObject (HttpTypesMap f) = FO.fromFoldable ((Map.toUnfoldable f) :: (Array (Tuple String a)))
@@ -134,7 +163,13 @@ httpTypesMapToObject (HttpTypesMap f) = FO.fromFoldable ((Map.toUnfoldable f) ::
 instance writeForeignHttpTypesMap :: (WriteForeign a) => WriteForeign (HttpTypesMap a) where
   writeImpl f = writeImpl (httpTypesMapToObject f)
 
-data JSON = JObject (HttpTypesMap JSON) | JArray (Array JSON) | JString String | JBoolean Boolean | JNumber Number | JNull
+data JSON
+  = JObject (HttpTypesMap JSON)
+  | JArray (Array JSON)
+  | JString String
+  | JBoolean Boolean
+  | JNumber Number
+  | JNull
 
 instance readForeignJSON :: ReadForeign JSON where
   readImpl f = if (isNull f) then pure JNull else (readNumber f >>= pure <<< JNumber) <|> (readBoolean f >>= pure <<< JBoolean) <|> (readString f >>= pure <<< JString) <|> (readArray f >>= sequence <<< map readImpl >>= pure <<< JArray) <|> (readImpl f >>= pure <<< JObject)
