@@ -133,6 +133,8 @@ newtype Request
 
 derive newtype instance readForeignRequest :: ReadForeign Request
 
+derive newtype instance writeForeignRequest :: WriteForeign Request
+
 newtype Response
   = Response
   { statusCode :: Int
@@ -143,6 +145,8 @@ newtype Response
 
 derive newtype instance readForeignResponse :: ReadForeign Response
 
+derive newtype instance writeForeignResponse :: WriteForeign Response
+
 newtype Exchange
   = Exchange
   { meta :: Maybe JSON
@@ -151,6 +155,8 @@ newtype Exchange
   }
 
 derive newtype instance readForeignExchange :: ReadForeign Exchange
+
+derive newtype instance writeForeignExchange :: WriteForeign Exchange
 
 instance readForeignHttpTypesMap :: (ReadForeign a) => ReadForeign (HttpTypesMap a) where
   readImpl f = do
