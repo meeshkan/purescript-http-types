@@ -100,7 +100,7 @@ data Query
   | ArrayQuery (Array String)
 
 instance readForeignQuery :: ReadForeign Query where
-  readImpl a = (readString a >>= pure <<< StringQuery) <|> (readArray a >>= sequence <<< map readImpl >>= pure <<< ArrayQuery)
+  readImpl a = (StringQuery <$> readString a) <|> (ArrayQuery <$> (readArray a >>= sequence <<< map readImpl))
 
 instance writeForeignQuery :: WriteForeign Query where
   writeImpl (StringQuery s) = writeImpl s
@@ -111,7 +111,7 @@ data Header
   | ArrayHeader (Array String)
 
 instance readForeignHeader :: ReadForeign Header where
-  readImpl a = (readString a >>= pure <<< StringHeader) <|> (readArray a >>= sequence <<< map readImpl >>= pure <<< ArrayHeader)
+  readImpl a = (StringHeader <$> readString a) <|> (ArrayHeader <$> (readArray a >>= sequence <<< map readImpl))
 
 instance writeForeignHeader :: WriteForeign Header where
   writeImpl (StringHeader s) = writeImpl s
