@@ -16,6 +16,7 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Map as Map
 import Data.Maybe (Maybe)
+import Data.Newtype (class Newtype)
 import Data.Nullable (Nullable, null)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple)
@@ -25,6 +26,8 @@ import Simple.JSON (class ReadForeign, readImpl, class WriteForeign, writeImpl)
 
 newtype HttpTypesMap b
   = HttpTypesMap (Map.Map String b)
+
+derive instance newtypeHttpTypesMap :: Newtype (HttpTypesMap a) _
 
 derive newtype instance eqHttpTypesMap :: (Eq a) => Eq (HttpTypesMap a)
 
