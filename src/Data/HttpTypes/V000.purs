@@ -33,6 +33,10 @@ derive instance genericHttpTypesMap :: Generic (HttpTypesMap a) _
 
 derive newtype instance eqHttpTypesMap :: (Eq a) => Eq (HttpTypesMap a)
 
+derive newtype instance semigroupHttpTypesMap :: Semigroup (HttpTypesMap a)
+
+derive newtype instance monoidHttpTypesMap :: Monoid (HttpTypesMap a)
+
 instance httpTypesMapShow :: (Show a) => Show (HttpTypesMap a) where
   show = genericShow
 
